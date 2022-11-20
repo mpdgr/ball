@@ -1,36 +1,69 @@
 package mpdgr.ball;
 
 import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.geometry.Pos;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.TilePane;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class BallController extends Application {
     @Override
     public void start(Stage stage) {
-        TilePane topPane = new TilePane(10, 10);
-        topPane.setAlignment(Pos.CENTER);
 
-        Button b1 = new Button("1");
-        Button b2 = new Button("2");
-        Button b3 = new Button("3");
-        Button b4 = new Button("4");
-        Button b5 = new Button("5");
+        GridPane topPanel = new GridPane();
+        topPanel.setMinSize(400, 100);
+        topPanel.setPadding(new Insets(10, 10, 10, 10));
+        topPanel.setVgap(5);
+        topPanel.setHgap(15);
+        topPanel.setStyle("-fx-background-color: #F6F6F6");
 
-        topPane.getChildren().add(b1);
-        topPane.getChildren().add(b2);
-        topPane.getChildren().add(b3);
-        topPane.getChildren().add(b4);
-        topPane.getChildren().add(b5);
+        Label xVelocityLabel = new Label("Horizontal start speed:");
+        TextField xVelocityField = new TextField ();
+        xVelocityField.setMaxWidth(60);
+
+        Label yVelocityLabel = new Label("Vertical start speed:");
+        TextField yVelocityField = new TextField ();
+        yVelocityField.setMaxWidth(60);
+
+        Label gravityLabel = new Label("Gravity:");
+        TextField gravityField = new TextField ();
+        gravityField.setMaxWidth(60);
+
+        Label rollingResLabel = new Label("Rolling resistance:");
+        TextField rollingResField = new TextField ();
+        rollingResField.setMaxWidth(60);
+
+        Label bouncingResLabel = new Label("Bounce energy loss:");
+        TextField bouncingResField = new TextField ();
+        bouncingResField.setMaxWidth(60);
+
+        Button startButton = new Button("Start!");
+        startButton.setMinWidth(100);
+
+        Button stopButton = new Button("Stop");
+        stopButton.setMinWidth(100);
+
+        topPanel.add(startButton, 0, 0);
+        topPanel.add(stopButton, 0, 1);
+        topPanel.add(xVelocityLabel, 1, 0);
+        topPanel.add(xVelocityField, 2, 0);
+        topPanel.add(yVelocityLabel, 1, 1);
+        topPanel.add(yVelocityField, 2, 1);
+        topPanel.add(gravityLabel, 1, 2);
+        topPanel.add(gravityField, 2, 2);
+        topPanel.add(rollingResLabel, 1, 3);
+        topPanel.add(rollingResField, 2, 3);
+        topPanel.add(bouncingResLabel, 1, 4);
+        topPanel.add(bouncingResField, 2, 4);
 
         Canvas space = new Canvas(800, 400);
         space.getGraphicsContext2D().setFill(Color.BLACK);
@@ -41,7 +74,7 @@ public class BallController extends Application {
         ground.getGraphicsContext2D().fillRect(0, 0, ground.getWidth(), ground.getHeight());
 
         BorderPane root = new BorderPane();
-        root.setTop(topPane);
+        root.setTop(topPanel);
         root.setCenter(space);
         root.setBottom(ground);
 
@@ -52,7 +85,42 @@ public class BallController extends Application {
         Position startPosition = new Position(startPositionX, startPositionY);
         ballView.drawBall(space.getGraphicsContext2D(), startPosition);
 
-        b1.setOnAction(event -> startBall(space, startPosition));
+        Physics physics = new Physics(-1000, 0.1, -0.5);
+        AtomicReference<BallModel> model = new AtomicReference<>(new BallModel(startPosition));
+
+        xVelocityField.textProperty().setValue(String.valueOf(model.get().getxVelocity()));
+        xVelocityField.textProperty().addListener((o, oldValue, newValue) -> {
+            model.get().setxVelocity(Double.parseDouble(newValue));});
+
+        yVelocityField.textProperty().setValue(String.valueOf(model.get().getyVelocity()));
+        yVelocityField.textProperty().addListener((o, oldValue, newValue) -> {
+            model.get().setyVelocity(Double.parseDouble(newValue));});
+
+        gravityField.textProperty().setValue(String.valueOf(physics.getGravAcc()));
+        gravityField.textProperty().addListener((o, oldValue, newValue) -> {
+            physics.setGravAcc(Double.parseDouble(newValue));});
+
+        rollingResField.textProperty().setValue(String.valueOf(physics.getRollingResistance()));
+        rollingResField.textProperty().addListener((o, oldValue, newValue) -> {
+            physics.setRollingResistance(Double.parseDouble(newValue));});
+
+        bouncingResField.textProperty().setValue(String.valueOf(physics.getEnergyLoss()));
+        bouncingResField.textProperty().addListener((o, oldValue, newValue) -> {
+            physics.setEnergyLoss(Double.parseDouble(newValue));});
+
+        startButton.setOnAction(event -> startBall(space, model.get()));
+
+        stopButton.setOnAction(event -> {
+            model.get().setTerminated(true);
+            Physics physicsUpdate = new Physics(Double.parseDouble(gravityField.textProperty().get()),
+                    Double.parseDouble(bouncingResField.textProperty().get()),
+                    Double.parseDouble(rollingResField.textProperty().get()));
+            BallModel modelUpdate = new BallModel(physicsUpdate, startPosition,
+                    Double.parseDouble(xVelocityField.textProperty().get()),
+                    Double.parseDouble(yVelocityField.textProperty().get()));
+            model.set(modelUpdate);
+        }
+        );
 
         Scene scene = new Scene(root);
         stage.setTitle("Ball");
@@ -60,14 +128,11 @@ public class BallController extends Application {
         stage.show();
     }
 
-    void startBall(Canvas space, Position startPosition){
+    void startBall(Canvas space, BallModel model){
         long delay = 0;
-        long sTime = System.currentTimeMillis();
-        BallModel model = new BallModel(startPosition);
-
-
+        model.timeStart();
         Timer timer = new Timer();
-        TimerTask punchBall = new TimerTask() {
+        TimerTask startBall = new TimerTask() {
             @Override
             public void run() {
                 redrawSpace(space, model.computePosition());
@@ -76,7 +141,7 @@ public class BallController extends Application {
                 }
             }
         };
-        timer.scheduleAtFixedRate(punchBall, delay, 5);
+        timer.scheduleAtFixedRate(startBall, delay, 10);
     }
 
     void redrawSpace(Canvas space, Position ballPosition){
@@ -90,3 +155,14 @@ public class BallController extends Application {
         launch();
     }
 }
+
+
+
+
+//        AnimationTimer timer = new AnimationTimer() {
+//            @Override
+//            public void handle(long l) {
+//                redrawSpace(space, model.computePosition());
+//            }
+//        };
+//        timer.start();
