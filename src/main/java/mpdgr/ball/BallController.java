@@ -141,7 +141,7 @@ public class BallController extends Application {
                 }
             }
         };
-        timer.scheduleAtFixedRate(startBall, delay, 10);
+        timer.scheduleAtFixedRate(startBall, delay, 5);
     }
 
     void redrawSpace(Canvas space, Position ballPosition){
