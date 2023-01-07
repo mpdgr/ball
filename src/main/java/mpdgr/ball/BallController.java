@@ -90,23 +90,28 @@ public class BallController extends Application {
 
         xVelocityField.textProperty().setValue(String.valueOf(model.get().getxVelocity()));
         xVelocityField.textProperty().addListener((o, oldValue, newValue) -> {
-            model.get().setxVelocity(Double.parseDouble(newValue));});
+            model.get().setxVelocity(Double.parseDouble(newValue));
+        });
 
         yVelocityField.textProperty().setValue(String.valueOf(model.get().getyVelocity()));
         yVelocityField.textProperty().addListener((o, oldValue, newValue) -> {
-            model.get().setyVelocity(Double.parseDouble(newValue));});
+            model.get().setyVelocity(Double.parseDouble(newValue));
+        });
 
         gravityField.textProperty().setValue(String.valueOf(physics.getGravAcc()));
         gravityField.textProperty().addListener((o, oldValue, newValue) -> {
-            physics.setGravAcc(Double.parseDouble(newValue));});
+            physics.setGravAcc(Double.parseDouble(newValue));
+        });
 
         rollingResField.textProperty().setValue(String.valueOf(physics.getRollingResistance()));
         rollingResField.textProperty().addListener((o, oldValue, newValue) -> {
-            physics.setRollingResistance(Double.parseDouble(newValue));});
+            physics.setRollingResistance(Double.parseDouble(newValue));
+        });
 
         bouncingResField.textProperty().setValue(String.valueOf(physics.getEnergyLoss()));
         bouncingResField.textProperty().addListener((o, oldValue, newValue) -> {
-            physics.setEnergyLoss(Double.parseDouble(newValue));});
+            physics.setEnergyLoss(Double.parseDouble(newValue));
+        });
 
         startButton.setOnAction(event -> startBall(space, model.get()));
 

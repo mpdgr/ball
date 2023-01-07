@@ -11,7 +11,7 @@ public class BallModel {
     private long startingTime;
     private long startRollingTime;
 
-    private enum Direction {LEFT, RIGHT};
+    private enum Direction {LEFT, RIGHT}
     private Direction direction;
 
     private boolean rollingStarted = false;
@@ -37,9 +37,7 @@ public class BallModel {
         this.startingTime = System.currentTimeMillis();
         this.startRollingTime = startingTime;
         physics.setEnergyLoss(0.1);
-//        this.energyLoss = 0.1;
         physics.setRollingResistance(- 0.5);
-//        this.rollingResistance = - 0.5;
         this.isRolling = (yVelocity == 0);
         this.direction = Direction.RIGHT;
     }
@@ -47,7 +45,7 @@ public class BallModel {
     Position computePosition (){
         long time = System.currentTimeMillis() - startingTime;
         long rollTime = System.currentTimeMillis() - startRollingTime;
-          double startX = startingPosition.getX();
+        double startX = startingPosition.getX();
         double startY = startingPosition.getY();
         double timeSec = time / 1000.0;
 
@@ -172,18 +170,3 @@ public class BallModel {
 
 
 //TODO: air resistance
-//
-//    double currentXVelocity(double timeSec) {
-//        long rollTime = System.currentTimeMillis() - startRollingTime;
-//        double currentX;
-//
-//        if (isRolling) {
-//            double resistanceCorrection = rollingResistance * rollTime / 50;
-//            resistanceCorrection = xVelocity < 0 ? - resistanceCorrection : resistanceCorrection;
-//            currentX = xVelocity + resistanceCorrection;
-//        }
-//        else {
-//            currentX = xVelocity;
-//        }
-//        return currentX;
-//    }
